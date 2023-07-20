@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Jogo de Palavras</title>
+</head>
+<body>
+    <button onclick="iniciarJogo()">Jogar</button>
+
+    <div id="telaSelecao" style="display: none;">
+        <h2>Selecione as equipes e jogadores:</h2>
+        <div id="equipes">
+           
+        </div>
+        <button onclick="adicionarEquipe()">Adicionar Equipe</button>
+        <button onclick="confirmarEquipes()">Confirmar Equipes</button>
+    </div>
+
+    <div id="telaPalavras" style="display: none;">
+        <h2>Insira as palavras:</h2>
+        <input type="text" id="palavraAtual">
+        <button onclick="adicionarPalavra()">Confirmar Palavra</button>
+    </div>
+
+    <div id="telaJogo" style="display: none;">
+        <h2 id="equipeDaVez"></h2>
+        <h3 id="palavraExibida"></h3>
+        <button onclick="iniciarRodada()">Start</button>
+        <button onclick="proximaPalavra()">Next</button>
+    </div>
+
+    <script>
+        let equipes = [];
+        let jogadores = [];
+        let palavras = [];
+        let palavrasExibidas = [];
+        let equipeAtual = 0;
+        let jogadorAtual = 0;
+        let palavraAtual = 0;
+        let rodadaIniciada = false;
+        let equipNumb = 1;
+
+        function iniciarJogo() {
+            document.getElementById("telaSelecao").style.display = "block";
+        }
+
+        function adicionarEquipe() {
+            const novaEquipe = {
+                nome: `Equipe ${equipNumb}`,
+                jogadores: []
+            };
+            equipNumb++;
+            equipes.push(novaEquipe);
+            document.getElementById("equipes").innerHTML += `
+                <div>
+                    <label for="nomeEquipe${equipes.length}">${novaEquipe.nome}:</label>
+                    <input type="text" id="nomeEquipe${equipes.length}">
+                    <button onclick="adicionarJogador(${equipes.length})">Adicionar Jogador</button>
+                    <div id="jogadoresEquipe${equipes.length}"></div>
+                </div>
+            `;
+        }
+
+        function adicionarJogador(equipeIndex) {
+            const nomeEquipe = document.getElementById("nomeEquipe" + equipeIndex).value;
+            if (nomeEquipe !== "") {
+                const jogador = { equipe: nomeEquipe, nome: "", palavras: 0, pontos: 0 };
+                equipes[equipeIndex - 1].jogadores.push(jogador);
+                jogadores.push(jogador); // Adicionar o jogador à lista geral de jogadores
+                document.getElementById("jogadoresEquipe" + equipeIndex).innerHTML += `<input type="text" placeholder="Nome do Jogador" oninput="atualizarNome(${equipeIndex - 1}, ${equipes[equipeIndex - 1].jogadores.length - 1})"> <br>`;
+            }
+        }
+
+        function atualizarNome(equipeIndex, jogadorIndex) {
+            const nome = document.getElementsByTagName("input")[jogadorIndex + equipes[equipeIndex].jogadores.length + 1].value;
+            equipes[equipeIndex].jogadores[jogadorIndex].nome = nome;
+        }
+
+        function confirmarEquipes() {
+            const telaSelecao = document.getElementById("telaSelecao");
+            telaSelecao.style.display = "none";
+
+            const telaPalavras = document.getElementById("telaPalavras");
+            telaPalavras.style.display = "block";
+
+            // Inicializar a estrutura de dados "jogadores" com os jogadores de cada equipe
+            for (const equipe of equipes) {
+                jogadores.push(...equipe.jogadores);
+            }
+        }
+
+        function adicionarPalavra() {
+            const palavra = document.getElementById("palavraAtual").value;
+            if (palavra !== "") {
+                const jogador = jogadores[jogadorAtual];
+                palavras.push(palavra);
+                document.getElementById("palavraAtual").value = ""; // Limpa o campo de entrada de palavra
+
+                if (jogador.palavras < 3) {
+                    document.getElementById("palavraAtual").placeholder = `Insira a palavra ${jogador.palavras.length + 1} de ${jogador.nome}`;
+                } else {
+                    proximoJogador();
+                }
+            }
+        }
+
+        function proximoJogador() {
+            if (jogadorAtual < jogadores.length - 1) {
+                jogadorAtual++;
+                const jogador = jogadores[jogadorAtual];
+                document.getElementById("palavraAtual").placeholder = `Insira a palavra 1 de ${jogador.nome}`;
+            } else {
+                const telaPalavras = document.getElementById("telaPalavras");
+                telaPalavras.style.display = "none";
+
+                equipeAtual = 0;
+                jogadorAtual = 0;
+                palavraAtual = 0;
+                rodadaIniciada = false;
+
+                proximaRodada();
+            }
+        }
+
+        function proximaRodada() {
+            if (!rodadaIniciada) {
+                equipeAtual = (equipeAtual + 1) % equipes.length;
+                jogadorAtual = 0;
+                palavraAtual = 0;
+
+                document.getElementById("equipeDaVez").innerText = `Equipe ${equipes[equipeAtual].nome}`;
+                document.getElementById("palavraExibida").innerText = "";
+
+                document.getElementById("telaJogo").style.display = "block";
+            }
+            // Verificar se todas as palavras foram inseridas
+            if (palavras.length < jogadores.length * 3) {
+                const jogador = jogadores[jogadorAtual];
+                document.getElementById("palavraAtual").placeholder = `Insira a palavra ${palavras.length + 1} de ${jogador.nome}`;
+            } else {
+                // Todas as palavras foram inseridas, ir para a tela de jogo
+                document.getElementById("equipeDaVez").innerText = `Equipe ${equipes[equipeAtual].nome}`;
+                document.getElementById("telaJogo").style.display = "block";
+            }
+        }
+
+        function iniciarRodada() {
+            if (!rodadaIniciada) {
+                rodadaIniciada = true;
+                document.getElementById("palavraExibida").innerText = "Iniciando...";
+                    exibirPalavra();
+            }
+        }
+
+        function exibirPalavra() {
+		console.log(palavras.length);
+            if (palavraAtual < palavras.length) {
+                const palavra = obterPalavraAleatoria();
+                document.getElementById("palavraExibida").innerText = palavra;
+                palavrasExibidas.push(palavra);
+                palavraAtual++;
+            }
+        }
+
+        function obterPalavraAleatoria() {
+            const palavrasNaoExibidas = palavras.filter(palavra => !palavrasExibidas.includes(palavra));
+            const indiceAleatorio = Math.floor(Math.random() * palavrasNaoExibidas.length);
+            return palavrasNaoExibidas[indiceAleatorio];
+        }
+
+        function proximaPalavra() {
+            if (rodadaIniciada && palavraAtual < palavras.length) {
+                const jogador = jogadores[jogadorAtual];
+                jogador.pontos++;
+                jogadorAtual = (jogadorAtual + 1) % jogadores.length;
+                exibirPalavra();
+            } else {
+                rodadaIniciada = false;
+                document.getElementById("telaJogo").style.display = "none";
+                proximaRodada();
+            }
+        }
+    </script>
+</body>
+</html>

@@ -46,32 +46,32 @@
         function adicionarEquipe() {
             const novaEquipe = {
                 nome: `Equipe ${equipNumb}`,
-                jogadores: []
+                jogadores: [],
+                eIndex: equipNumb -1
             };
             equipNumb++;
             equipes.push(novaEquipe);
             document.getElementById("equipes").innerHTML += `
                 <div>
-                    <label for="nomeEquipe${equipes.length}">${novaEquipe.nome}:</label>
-                    <input type="text" id="nomeEquipe${equipes.length}">
-                    <button onclick="adicionarJogador(${equipes.length})">Adicionar Jogador</button>
-                    <div id="jogadoresEquipe${equipes.length}"></div>
+                    <label>${novaEquipe.nome}:</label>
+                    <button onclick="adicionarJogador(${novaEquipe.eIndex})">Adicionar Jogador</button>
+                    <div id="jogadoresEquipe${novaEquipe.eIndex}"></div>
                 </div>
             `;
         }
 
         function adicionarJogador(equipeIndex) {
-            const nomeEquipe = document.getElementById("nomeEquipe" + equipeIndex).value;
-            if (nomeEquipe !== "") {
-                const jogador = { equipe: nomeEquipe, nome: "", palavras: 0, pontos: 0 };
-                equipes[equipeIndex - 1].jogadores.push(jogador);
+            
+                const jogador = { equipe: equipeIndex, jogadorIndex: 0, nome: "", palavras: 0, pontos: 0 };
+                jogadorIndex = equipes[equipeIndex].jogadores.length;
+                equipes[equipeIndex].jogadores.push(jogador);
                 jogadores.push(jogador); // Adicionar o jogador à lista geral de jogadores
-                document.getElementById("jogadoresEquipe" + equipeIndex).innerHTML += `<input type="text" placeholder="Nome do Jogador" oninput="atualizarNome(${equipeIndex - 1}, ${equipes[equipeIndex - 1].jogadores.length - 1})"> <br>`;
-            }
+                document.getElementById("jogadoresEquipe" + equipeIndex).innerHTML += `<input type="text" placeholder="Nome do Jogador" id="${equipeIndex*10 + jogadorIndex}" oninput="atualizarNome(${equipeIndex}, ${jogadorIndex})"> <br>`;
+            
         }
 
         function atualizarNome(equipeIndex, jogadorIndex) {
-            const nome = document.getElementsByTagName("input")[jogadorIndex + equipes[equipeIndex].jogadores.length + 1].value;
+            const nome = document.getElementById(equipeIndex*10 + jogadorIndex).value;
             equipes[equipeIndex].jogadores[jogadorIndex].nome = nome;
         }
 
@@ -83,9 +83,11 @@
             telaPalavras.style.display = "block";
 
             // Inicializar a estrutura de dados "jogadores" com os jogadores de cada equipe
-            for (const equipe of equipes) {
+          /*  for (const equipe of equipes) {
                 jogadores.push(...equipe.jogadores);
             }
+            */
+            console.log(equipes, jogadores);
         }
 
         function adicionarPalavra() {
